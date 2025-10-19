@@ -21,7 +21,7 @@ let
     server-secondary = {
       role = "server";
       isPrimary = false;
-      serverURL = "https://server:6443";
+      serverURL = "https://${hostname}:6443";
       nodeName = "k3s-server-1";
       description = "Secondary k3s server node";
     };
@@ -30,7 +30,7 @@ let
     agent = {
       role = "agent";
       isPrimary = false;
-      serverURL = "https://server:6443";
+      serverURL = "https://${hostname}:6443";
       nodeName = "k3s-agent-0";
       description = "k3s worker agent node";
     };
@@ -53,23 +53,20 @@ let
   # Role-specific flags
   ##############################################################################
   roleSpecificFlags =
-    if currentNode.role == "server" then
-      [
-        "--cluster-init"  # Initialize cluster on primary server
-      ]
+    if (currentNode.role == "server" && currentNode.isPrimary) then
+      [ "--cluster-init" ]
     else
-      [];
+      [ ];
+
 
   ##############################################################################
   # Join flags for secondary nodes
   ##############################################################################
   joinFlags =
-    if currentNode.isPrimary then
-      []
+    if currentNode.isPrimary || currentNode.serverURL == null then
+      [ ]
     else
-      [
-        "--server ${currentNode.serverURL}"
-      ];
+      [ "--server ${currentNode.serverURL}" ];
 
 in
 {
@@ -86,13 +83,11 @@ in
     # Initialize cluster on primary node only
     clusterInit = currentNode.isPrimary;
 
-    # Node name for cluster identification
-    nodeName = currentNode.nodeName;
-
     ##########################################################################
     # Combine all flags
     ##########################################################################
-    extraFlags = commonFlags ++ roleSpecificFlags ++ joinFlags;
+    extraFlags = commonFlags ++ roleSpecificFlags ++ joinFlags
+      ++ lib.optionals (currentNode.nodeName != null) [ "--node-name ${currentNode.nodeName}" ];
   };
 
   ##############################################################################

@@ -66,7 +66,6 @@
       ##################################################################
       core.autocrlf = "input";          # Normalize CRLF to LF on commit
       core.fileMode = true;             # Respect executable permissions
-      core.pager = "less -R";           # Better pager for colored output
 
       ##################################################################
       # Fetch and Push Behavior
@@ -106,23 +105,4 @@
     };
   };
 
-  ##############################################################################
-  # Global gitattributes
-  ##############################################################################
-  home.file.".gitattributes".text = ''
-    # Auto-detect text files and normalize line endings to LF
-    * text=auto eol=lf
-
-    # Binary files
-    *.png  binary
-    *.jpg  binary
-    *.jpeg binary
-    *.gif  binary
-    *.pdf  binary
-    *.zip  binary
-    *.jar  binary
-    *.wav  binary
-    *.mp4  binary
-    *.mov  binary
-  '';
 }

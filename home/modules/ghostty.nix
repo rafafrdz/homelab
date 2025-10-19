@@ -1,7 +1,7 @@
 { pkgs, lib, primaryUser, ... }:
 {
   # --- Ghostty configuration ---
-  home.file = lib.mkIf isDarwin {
+  home.file = {
     "/home/${primaryUser}/.config/ghostty/config".text = ''
         theme = Banana Blueberry
         title = " "

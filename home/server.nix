@@ -12,10 +12,10 @@
     ./default.nix
 
     # Hostname-specific application and tool modules
+    ./modules/packages.nix
     ./modules/git.nix
     ./modules/shell.nix
-    ./modules/mise.nix
-    ./modules/k3s.nix
+    # ./modules/mise.nix
 
     # Optional modules (uncomment to enable)
     # ./modules/ghostty.nix

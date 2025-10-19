@@ -47,16 +47,12 @@
     ##########################################################################
     # Oh My Zsh Configuration
     ##########################################################################
-    ohMyZsh = {
-      enable = true;
-      # theme = "agnoster";  # Uncomment to change theme
-      plugins = [
-        "git"       # Git shortcuts
-        "docker"    # Docker shortcuts
-        "kubectl"   # Kubernetes shortcuts
-        "sudo"      # Sudo toggle with ESC-ESC
-      ];
-    };
+    initContent = ''
+      export SDKMAN_DIR="$HOME/.sdkman"
+      if [ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]; then
+        source "$SDKMAN_DIR/bin/sdkman-init.sh"
+      fi
+    '';
   };
 
   ##############################################################################

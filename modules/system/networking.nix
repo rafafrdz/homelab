@@ -1,6 +1,6 @@
 # Networking configuration
 # Firewall rules and network services
-{ ... }:
+{ hostname, ... }:
 
 {
   ##############################################################################
@@ -11,6 +11,8 @@
   ##############################################################################
   # Firewall Configuration
   ##############################################################################
+    # Hostname
+  networking.hostName = hostname;
   networking.firewall = {
     enable = true;
 
@@ -38,6 +40,12 @@
   ##############################################################################
   # SSH Service
   ##############################################################################
+    # Tailscale
+  services.tailscale.enable = true;
+
+  # Docker si lo necesitas
+  virtualisation.docker.enable = true;
+
   services.openssh = {
     enable = true;
     settings = {

@@ -16,17 +16,14 @@ in
   ##############################################################################
   # These modules are imported for all hostnames
   imports = [
-    ./common/base.nix
-    ./common/users.nix
-    ./common/locale.nix
-    ./common/networking.nix
-  ];
+    ./modules/dotfiles.nix
+   ];
 
   ##############################################################################
   # Home Manager State Version
   ##############################################################################
   # Keep this value from the initial Home Manager setup
-  home.stateVersion = systemStateVersion;
+  home.stateVersion = "24.05";
 
   ##############################################################################
   # User Configuration (Standalone Mode)

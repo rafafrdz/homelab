@@ -3,10 +3,10 @@
 
   inputs = {
     # Main nixpkgs channel (unstable for latest packages)
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/25.05";
 
     # Home Manager for user environment management
-    home-manager.url = "github:nix-community/home-manager/release-24.05";
+    home-manager.url = "github:nix-community/home-manager/release-25.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     # VSCode Server support for remote development
@@ -52,6 +52,8 @@
     ################################################################################
     # HELPER FUNCTION - Build NixOS configuration dynamically
     ################################################################################
+    hostConfPath = builtins.toPath "${./hosts}/${hostname}/configuration.nix";
+    homeHostPath = builtins.toPath "${./home}/${hostname}.nix";
     mkNixosConfig = { hostname, system, primaryUser, ... }:
       nixpkgs.lib.nixosSystem {
         inherit system;
@@ -62,18 +64,30 @@
         };
 
         modules = [
-          (./hosts + "/${hostname}/configuration.nix")
+          hostConfPath
+          ./modules/system/shell.nix
+          ./modules/system/users.nix
+          ./modules/system/networking.nix
+          ./modules/system/packages.nix
+          ./modules/system/k3s.nix
+
+          # VS Code Server
+          vscode-server.nixosModules.default
+          { services.vscode-server.enable = true; }
 
           # Home Manager integration for NixOS
           home-manager.nixosModules.home-manager
           {
-            home-manager.useGlobalPkgs = true;
-            home-manager.useUserPackages = true;
-            home-manager.users.${primaryUser} = import (./home + "/${hostname}.nix");
+            home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                backupFileExtension = "backup";
+                users.${primaryUser} = import homeHostPath;
 
-            home-manager.extraSpecialArgs = {
-              inherit primaryUser gitUserName gitUserEmail gitHubUser systemStateVersion hostname;
-              standalone = false;  # Running on NixOS, not standalone
+                extraSpecialArgs = {
+                inherit primaryUser gitUserName gitUserEmail gitHubUser systemStateVersion hostname;
+                standalone = false;  # Running on NixOS, not standalone
+              };
             };
           }
         ];
@@ -87,7 +101,7 @@
         pkgs = nixpkgs.legacyPackages.${system};
 
         modules = [
-          (./home + "/${hostname}.nix")
+          homeHostPath
         ];
 
         extraSpecialArgs = {
@@ -108,9 +122,8 @@
     ################################################################################
     # HOME MANAGER STANDALONE CONFIGURATIONS (for Arch Linux with nix)
     ################################################################################
-    homeConfigurations.${primaryUser} = mkHomeConfig {
-      inherit hostname system primaryUser;
-    };
+    homeConfigurations.${hostname}   = mkHomeConfig { inherit hostname system primaryUser; };
+    homeConfigurations.${primaryUser} = mkHomeConfig { inherit hostname system primaryUser; };
 
     ################################################################################
     # FLAKE METADATA
