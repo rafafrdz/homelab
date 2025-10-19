@@ -1,0 +1,124 @@
+{
+  description = "NixOS and Home Manager configuration - hostname-driven setup";
+
+  inputs = {
+    # Main nixpkgs channel (unstable for latest packages)
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+
+    # Home Manager for user environment management
+    home-manager.url = "github:nix-community/home-manager/release-24.05";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    # VSCode Server support for remote development
+    vscode-server.url = "github:nix-community/nixos-vscode-server";
+  };
+
+  outputs = { self, nixpkgs, home-manager, vscode-server, ... }:
+  let
+    ################################################################################
+    # CENTRAL CONFIGURATION - Define hostname here
+    ################################################################################
+    # This hostname is the single source of truth for all configurations
+    # It will automatically reference: hosts/<hostname>/configuration.nix
+    # and hosts/<hostname>/hardware-configuration.nix
+    hostname = "server";
+
+    ################################################################################
+    # SYSTEM CONFIGURATION
+    ################################################################################
+    system = "x86_64-linux";
+
+    ################################################################################
+    # USER CONFIGURATION
+    ################################################################################
+    primaryUser = "pepino";
+    gitUserName = "Rafael Fernandez";
+    gitUserEmail = "github@rafaelfernandez.dev";
+    gitHubUser = "rafafrdz";
+
+    ################################################################################
+    # VERSION MANAGEMENT
+    ################################################################################
+    # Keep this value from initial installation - do not change after system setup
+    systemStateVersion = "25.05";
+
+    ################################################################################
+    # ENVIRONMENT DETECTION
+    ################################################################################
+    # Automatically detect if running on NixOS or Arch with nix
+    # Set to true for NixOS, false for standalone Home Manager on Arch
+    isNixOs = true;
+
+    ################################################################################
+    # HELPER FUNCTION - Build NixOS configuration dynamically
+    ################################################################################
+    mkNixosConfig = { hostname, system, primaryUser, ... }:
+      nixpkgs.lib.nixosSystem {
+        inherit system;
+
+        specialArgs = {
+          inherit self primaryUser gitUserName gitUserEmail gitHubUser systemStateVersion isNixOs hostname;
+          inputs = { inherit home-manager vscode-server; };
+        };
+
+        modules = [
+          (./hosts + "/${hostname}/configuration.nix")
+
+          # Home Manager integration for NixOS
+          home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.${primaryUser} = import (./home + "/${hostname}.nix");
+
+            home-manager.extraSpecialArgs = {
+              inherit primaryUser gitUserName gitUserEmail gitHubUser systemStateVersion hostname;
+              standalone = false;  # Running on NixOS, not standalone
+            };
+          }
+        ];
+      };
+
+    ################################################################################
+    # HELPER FUNCTION - Build Home Manager configuration dynamically
+    ################################################################################
+    mkHomeConfig = { hostname, system, primaryUser, ... }:
+      home-manager.lib.homeManagerConfiguration {
+        pkgs = nixpkgs.legacyPackages.${system};
+
+        modules = [
+          (./home + "/${hostname}.nix")
+        ];
+
+        extraSpecialArgs = {
+          inherit primaryUser gitUserName gitUserEmail gitHubUser systemStateVersion hostname;
+          standalone = true;  # Running standalone on Arch with nix
+        };
+      };
+
+  in
+  {
+    ################################################################################
+    # NIXOS SYSTEM CONFIGURATIONS
+    ################################################################################
+    nixosConfigurations.${hostname} = mkNixosConfig {
+      inherit hostname system primaryUser;
+    };
+
+    ################################################################################
+    # HOME MANAGER STANDALONE CONFIGURATIONS (for Arch Linux with nix)
+    ################################################################################
+    homeConfigurations.${primaryUser} = mkHomeConfig {
+      inherit hostname system primaryUser;
+    };
+
+    ################################################################################
+    # FLAKE METADATA
+    ################################################################################
+    # Provides information about this flake for external tools
+    meta = {
+      description = "Hostname-driven NixOS and Home Manager configuration";
+      version = systemStateVersion;
+    };
+  };
+}
