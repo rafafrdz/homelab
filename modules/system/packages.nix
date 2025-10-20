@@ -1,4 +1,18 @@
 { pkgs, ... }:
+let
+  my-kubernetes-helm = with pkgs; wrapHelm kubernetes-helm {
+    plugins = with pkgs.kubernetes-helmPlugins; [
+      helm-secrets
+      helm-diff
+      helm-s3
+      helm-git
+    ];
+  };
+
+  my-helmfile = pkgs.helmfile-wrapped.override {
+    inherit (my-kubernetes-helm) pluginsDir;
+  };
+in
 {
   programs.nix-ld.enable = true;
 
@@ -41,14 +55,8 @@
     k3s
     k9s
     kubectl
-    (wrapHelm kubernetes-helm {
-      plugins = with kubernetes-helmPlugins; [
-        helm-diff
-        helm-git
-        helm-s3
-        helm-secrets
-      ];
-    })
+    my-kubernetes-helm
+    my-helmfile
 
     # ── Redes / Sistema ───────────────────────────────────────────────────────
     curl

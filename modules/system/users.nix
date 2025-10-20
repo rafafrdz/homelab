@@ -31,6 +31,7 @@
 
     # SSH authorized keys (add your public keys here)
     openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIG+K00LYDenD9b0YJrHYuWls+nvO55aaMjbd0GLXIWNk rafafrdz@laptop"
       # Example: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... user@host"
     ];
 
