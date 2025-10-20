@@ -13,7 +13,7 @@ let
       role = "server";
       isPrimary = true;
       serverURL = null;  # Primary node doesn't need to join
-      nodeName = "k3s-server-0";
+      nodeName  = "k3s-server-${hostname}-0";
       description = "Primary k3s server node";
     };
 
@@ -22,7 +22,7 @@ let
       role = "server";
       isPrimary = false;
       serverURL = "https://${hostname}:6443";
-      nodeName = "k3s-server-1";
+      nodeName  = "k3s-server-${hostname}-1";
       description = "Secondary k3s server node";
     };
 
@@ -31,7 +31,7 @@ let
       role = "agent";
       isPrimary = false;
       serverURL = "https://${hostname}:6443";
-      nodeName = "k3s-agent-0";
+      nodeName  = "k3s-agent-${hostname}-0";
       description = "k3s worker agent node";
     };
   };

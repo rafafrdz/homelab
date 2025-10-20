@@ -23,7 +23,7 @@ in
   # Home Manager State Version
   ##############################################################################
   # Keep this value from the initial Home Manager setup
-  home.stateVersion = "24.05";
+  home.stateVersion = systemStateVersion;
 
   ##############################################################################
   # User Configuration (Standalone Mode)

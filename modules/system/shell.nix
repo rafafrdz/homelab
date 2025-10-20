@@ -7,7 +7,7 @@
 
     ohMyZsh = {
       enable  = true;
-      theme   = "agnoster"; # Cambia por tu favorito si quieres
+      # theme   = "agnoster"; # Cambia por tu favorito si quieres
       plugins = [ "git" "docker" "kubectl" "sudo" ];
     };
   };

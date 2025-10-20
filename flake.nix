@@ -9,11 +9,11 @@
     home-manager.url = "github:nix-community/home-manager/release-25.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    # VSCode Server support for remote development
-    vscode-server.url = "github:nix-community/nixos-vscode-server";
+    # Extra flakes
+    extras.url = "path:./modules/extras/";
   };
 
-  outputs = { self, nixpkgs, home-manager, vscode-server, ... }:
+  outputs = { self, nixpkgs, home-manager, extras, ... }:
   let
     ################################################################################
     # CENTRAL CONFIGURATION - Define hostname here
@@ -55,25 +55,27 @@
     hostConfPath = builtins.toPath "${./hosts}/${hostname}/configuration.nix";
     homeHostPath = builtins.toPath "${./home}/${hostname}.nix";
     mkNixosConfig = { hostname, system, primaryUser, ... }:
-      nixpkgs.lib.nixosSystem {
+    nixpkgs.lib.nixosSystem {
         inherit system;
 
         specialArgs = {
           inherit self primaryUser gitUserName gitUserEmail gitHubUser systemStateVersion isNixOs hostname;
-          inputs = { inherit home-manager vscode-server; };
+          inputs = { inherit home-manager extras; };
         };
 
         modules = [
           hostConfPath
+
+          # System flakes
           ./modules/system/shell.nix
           ./modules/system/users.nix
           ./modules/system/networking.nix
+          ./modules/system/locale.nix
           ./modules/system/packages.nix
           ./modules/system/k3s.nix
 
-          # VS Code Server
-          vscode-server.nixosModules.default
-          { services.vscode-server.enable = true; }
+          # Extra modules
+          extras.nixosModules.vscodeServer
 
           # Home Manager integration for NixOS
           home-manager.nixosModules.home-manager
